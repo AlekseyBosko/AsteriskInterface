@@ -23,6 +23,7 @@ public class Redirect extends JDialog {
 	public Redirect() {	
 	    setSize(WIDTH, HEIGHT); 
 	    Toolkit kit = Toolkit.getDefaultToolkit();      
+	    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	    setLocation((kit.getScreenSize().width - WIDTH)/2, (kit.getScreenSize().height - HEIGHT)/2);  
 	    Font = new Font("Serif", Font.PLAIN, 20);
 	    container = this.getContentPane();

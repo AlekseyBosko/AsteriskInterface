@@ -12,13 +12,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -47,6 +53,8 @@ public class Phone extends JPanel {
 	protected int MaxChars;
 	//номер телефона с громой связью
 	public static String Extension;
+	//номера телефонов без громкой связи
+	public static ArrayList<String> usualExtensions;
 	//все возможные номера принадлежащие телефону
 	public static ArrayList<String> AllExtensions;
 	//IP адрес asterisk
@@ -73,7 +81,7 @@ public class Phone extends JPanel {
 	//панель "истории звонков"
 	private static JPanel listPanel;
 	//хэш массив (номера-имя)
-	public static Hashtable<String, String> numbers = new Hashtable<String, String>();
+	public static Hashtable<String, List<String>> numbers = new Hashtable<String, List<String>>();
 	
 	public Phone() { 
 		listNamesFont = new Font("Serif", Font.BOLD, 20);
@@ -160,7 +168,8 @@ public class Phone extends JPanel {
 		    });
 		//добавление кнопки Позвонить
 	    URL urlCall = ClassLoader.getSystemResource("phone-green-icon.png");
-		CallButton = new JButton(new ImageIcon(urlCall));
+		//CallButton = new JButton(new ImageIcon(urlCall));
+	    CallButton = new JButton("call");
 		CallButton.setPreferredSize(new Dimension(180,90));
 		if(DisplayField.getText().isEmpty()) CallButton.setEnabled(false);
 		else CallButton.setEnabled(true);
@@ -172,7 +181,8 @@ public class Phone extends JPanel {
 		    });
 		//добавление кнопки Очистить дисплей
 		URL urlRemove = ClassLoader.getSystemResource("Banned-icon.png");
-		JButton RemoveButton = new JButton(new ImageIcon(urlRemove));
+		//JButton RemoveButton = new JButton(new ImageIcon(urlRemove));
+		JButton RemoveButton = new JButton("remove");
 		RemoveButton.setPreferredSize(new Dimension(180,90));
 		RemoveButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent ev) { 
@@ -196,7 +206,7 @@ public class Phone extends JPanel {
 				MainFrame.RedirectPanel.setVisible(true);
 	            } 
 		    });
-		//добавление кнопки перевести звонок
+		//добавление кнопки история звонков
 		JButton ListButton = new JButton();
 		ListButton.setPreferredSize(new Dimension(180,90));
 		ListButton.setMaximumSize(new Dimension(180,90));
@@ -224,8 +234,16 @@ public class Phone extends JPanel {
 	    return panel;
 	}
 	//функция звонок
-	public static void Call(String num){
-		String number = num; 
+	public static void Call(final String num){
+	   
+		java.awt.EventQueue.invokeLater(new Runnable() {
+			public void run() {  
+		CallFrame CallFrame= new CallFrame();
+		CallFrame.HoldIfNotActive();
+		CallFrame.addOutputCallPanel(Extension,num);
+     	CallFrame.setVisible(true);
+    	}});
+		
 		Redial = num;
 		try {
 			Socket telnet = new Socket(AsteriskIp, 5038);
@@ -236,11 +254,12 @@ public class Phone extends JPanel {
                  writer.print("Secret: "+Password+"\r\n\r\n");
                  writer.print("Action: Originate\r\n");
                  writer.print("Channel: SIP/"+Extension+"\r\n" );
-                 writer.print("Exten: "+number+"\r\n");
+                 writer.print("Exten: "+num+"\r\n");
                  writer.print("Context: "+Context+"\r\n");
                  writer.print("Priority: 1\r\n");
-                 writer.print("CallerId: phone<"+number+">\r\n");
+                 writer.print("CallerId: phone<"+num+">\r\n");
                  writer.print("Async: yes\r\n\r\n");
+                 writer.print("Action: LOGOFF\r\n\r\n");
                  writer.flush();
                  telnet.close();
             }          
@@ -250,7 +269,10 @@ public class Phone extends JPanel {
        e1.printStackTrace();
    }
 
+
     }
+	
+	
 	public JButton Sleep(){
 	JButton button = new JButton("Затемнить");
     button.setVisible(true);
@@ -284,7 +306,7 @@ public class Phone extends JPanel {
 					}
       		});
       		f1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      		f1.setSize(300, 300);
+      		//f1.setSize(300, 300);
       		Toolkit kit = Toolkit.getDefaultToolkit();      
       	    f1.setLocation((kit.getScreenSize().width - 300)/2, (kit.getScreenSize().height - 300)/2);
       		f1.setUndecorated(true);
@@ -295,31 +317,68 @@ public class Phone extends JPanel {
     });
     return button; 
 	}
-	//добавление новой записи в "список звонков"
+	
+	//удаление callframe исходящих и входящих выховов и добавление новой записи в "список звонков"
 @SuppressWarnings("deprecation")
-public static void NumForList(String num,int arr)
-{   final String number = num;
-    if(listPanel.countComponents()==10) listPanel.remove(9);   
-	JButton button = new JButton(); 
-	button.setPreferredSize(new Dimension(300,70));
-	button.setMaximumSize(new Dimension(300,70));
-	button.addActionListener(new ActionListener() { 
-		public void actionPerformed(ActionEvent ev) { 
-			Call(number);
-            } 
-	    });
-	button.setLayout(new BorderLayout());
-    JLabel label1 = new JLabel(numbers.get(number),JLabel.CENTER);
-    JLabel label2;
-    if(arr==0) label2 = new JLabel(number,new ImageIcon(urlRed),JLabel.CENTER);
-    else label2 = new JLabel(number,new ImageIcon(urlGreen),JLabel.CENTER);
-    label1.setFont(listNamesFont);
-    label2.setFont(NumButtonsFont);
-    button.add(BorderLayout.NORTH,label1);
-    button.add(BorderLayout.CENTER,label2);    
-	listPanel.add(button,0);
-    listPanel.validate();
-    listPanel.repaint();
+public static void NumForList(final String outputChan,String inputChan,final int flagHangup)
+{ //flagHangup - указывает входящий или исходящий звонок(0-исходящий/1-входящий)
+	String initChannel=null;  //канал, который инициировал звонок
+	String channel=null;   //канал, который принимает звонок
+	Iterator<Entry<CallFrame, List<String>>> bridgeIterator = null;
+	//установка переменных канала в зависимости от типа звонка(входящий/исходящий)
+	if(flagHangup==0) {
+		initChannel=inputChan;
+		channel=outputChan;
+	}
+	else {
+		initChannel=outputChan;
+		channel=inputChan;
+	}
+	//поиск и удаление существующих callframe исходящих и входящих выховов
+	bridgeIterator = CallFrame.bridgeLines.entrySet().iterator();
+	while (bridgeIterator.hasNext()) {
+		Map.Entry entry = bridgeIterator.next();
+		List<String> bridgeList = (List<String>) entry.getValue();
+		if(bridgeList.get(0).equals(initChannel)&&bridgeList.get(1).equals(channel))
+		{
+			((CallFrame) entry.getKey()).setVisible(false);
+	        ((CallFrame) entry.getKey()).dispose();
+			CallFrame.bridgeLines.remove((CallFrame) entry.getKey());
+		}
+	}
+
+	java.awt.EventQueue.invokeLater(new Runnable() {
+	    public void run() {
+             if(listPanel.countComponents()==10) listPanel.remove(9);   
+	         JButton button = new JButton(); 
+	         button.setPreferredSize(new Dimension(300,70));
+	         button.setMaximumSize(new Dimension(300,70));
+	         button.addActionListener(new ActionListener() { 
+		     public void actionPerformed(ActionEvent ev) { 
+		     	Call(outputChan);
+              } 
+	         });
+           	 button.setLayout(new BorderLayout());
+           	JLabel label1 = null;
+             if(numbers.get(outputChan)!=null) {
+            	 label1 = new JLabel(numbers.get(outputChan).get(0),JLabel.CENTER);
+                 label1.setFont(listNamesFont);
+             }
+             JLabel label2;
+           //if(flagHangup==0) label2 = new JLabel(outputChan,new ImageIcon(urlRed),JLabel.CENTER);
+          // else label2 = new JLabel(outputChan,new ImageIcon(urlGreen),JLabel.CENTER);
+             if(flagHangup==0) label2 = new JLabel(outputChan + "исходящий",JLabel.CENTER);
+             else label2 = new JLabel(outputChan+ "входящий",JLabel.CENTER);
+             //label2.setFont(NumButtonsFont);
+				if (label1 != null) {
+					button.add(BorderLayout.NORTH, label1);
+					button.add(BorderLayout.CENTER, label2);
+				}  
+				else button.add(BorderLayout.CENTER, label2);
+             listPanel.add(button,0);
+             listPanel.validate();
+             listPanel.repaint();
+	    }});
 }
 //создание телефона и отображение его на экране
 	public void CreatePhone(){    
@@ -347,7 +406,8 @@ public static void NumForList(String num,int arr)
 	 
 	 JButton sleep = Sleep();
 	 JPanel slPanel = new JPanel();
-	 slPanel.add(sleep);
+	 slPanel.setLayout(new BorderLayout());
+	 slPanel.add(sleep,BorderLayout.EAST);
      Box listBox = Box.createVerticalBox(); 
      listBox.setPreferredSize(new Dimension(140,620));
      listBox.add(Box.createVerticalGlue());
