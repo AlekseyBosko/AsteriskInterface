@@ -80,7 +80,7 @@ public class SecondPageDisplay extends JPanel implements PageInterface{
 				else RedirectPhone.Redirect(number);
 		         }
 		    });
-		    i+=2;
+		    i+=3;
 		    SecondPagePanel[k].add(button);
 		}
 	}

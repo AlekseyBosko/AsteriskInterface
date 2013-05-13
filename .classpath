@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="F:/java/vitebsk/Workspace_java/Asterisk_interface/lib/substance-6.3.jar"/>
-	<classpathentry kind="lib" path="F:/java/vitebsk/Workspace_java/Asterisk_interface/lib/trident-6.3.jar"/>
+	<classpathentry kind="lib" path="D:/Java interface for phone on asterisk/Java interface for phone on asterisk2/asterisk_interface_vitebsk(description)/Workspace_java/Asterisk_interface/lib/substance-6.3.jar"/>
+	<classpathentry kind="lib" path="D:/Java interface for phone on asterisk/Java interface for phone on asterisk2/asterisk_interface_vitebsk(description)/Workspace_java/Asterisk_interface/lib/trident-6.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

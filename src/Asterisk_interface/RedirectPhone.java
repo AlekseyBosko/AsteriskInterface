@@ -163,6 +163,7 @@ public class RedirectPhone extends Phone{
                  writer.print("Priority: 1\r\n");
                  writer.print("CallerId: phone<"+callerId+">\r\n");
                  writer.print("Async: yes\r\n\r\n");
+                 writer.print("Action: LOGOFF\r\n\r\n");
                  writer.flush();
                  telnet.close();
                  
