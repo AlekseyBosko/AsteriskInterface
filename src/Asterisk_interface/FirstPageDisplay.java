@@ -32,8 +32,8 @@ public class FirstPageDisplay extends JPanel implements PageInterface{
 	private SecondPageDisplay second;
 	@SuppressWarnings("static-access")
 	public FirstPageDisplay(SecondPageDisplay panel,Container cont ,List<officeNode> _Office) { 
-		Font = new Font("Serif", Font.BOLD, 60);
-		arrFont = new Font("Serif", Font.BOLD, 20);
+		Font = new Font("TimesRoman", Font.BOLD, 60);
+		arrFont = new Font("TimesRoman", Font.BOLD, 20);
 		second = panel;
 		container = cont;
 		addButton(_Office);

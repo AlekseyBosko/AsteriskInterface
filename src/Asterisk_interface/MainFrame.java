@@ -1,7 +1,6 @@
 package Asterisk_interface;
 
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,18 +11,11 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Map.Entry;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -58,18 +50,20 @@ public class MainFrame extends JFrame {
   public static Container container;
   //блоки вводимых данных для первой страницы
   public static JPanel [] FirstPagePanel;
-  private static BufferedReader in;
+  public static MainFrame frame;
   //скин интерфейса
   private static String skin;
-  
-  private static String str;
-  private static String inputChannel = null;
-  private static String outputChannel = null;
-  private static String dialInitChannel = null;
-  private static String dialChannel = null;
-  private static Boolean error = false;
-  private static Iterator<Entry<CallFrame, String>> dialIterator = null;
-  private static String bridgeState = null;
+   
+  private static BufferedReader telnetReader;
+  private static PrintWriter telnetWriter;
+
+  //положение CallFrames по оси x
+  public static int xLocationForCallFrame = 100;
+  //поток Asterisk
+  private static AsteriskThread AsteriskThread;
+  //имя файла, в котором хранится информация о пользователе
+  private static String UsersInfoFile;
+
   //инициализация главного фрейма
 public MainFrame() { 
     super("Ip phone interface"); 
@@ -95,8 +89,7 @@ public MainFrame() {
 	//считывание xml файла
 	showDocument(doc);
 	//отображение окна во весь экран
-	//setUndecorated(true);
-    
+	setUndecorated(true);
   } 
 //загрузка настроек для интерфейса
 @SuppressWarnings({ "static-access" })
@@ -114,7 +107,7 @@ private static void getConfig() throws IOException{
        while ((line = br.readLine()) != null) {
     	   line=line.trim();
     	  if(line.startsWith("Speaker")) {
-              Phone.Extension = line.substring(22).trim();
+              Phone.MainExtension = line.substring(22).trim();
     		  Phone.AllExtensions.add(line.substring(22).trim());
     	  }
     	  if(line.startsWith("Phone number")) {
@@ -122,12 +115,15 @@ private static void getConfig() throws IOException{
     		  Phone.AllExtensions.add(line.substring(14).trim());
     	  }
           if(line.startsWith("Ip adress")) Phone.AsteriskIp = line.substring(20).trim();
-          if(line.startsWith("User")) Phone.User = line.substring(6).trim();
-          if(line.startsWith("Password")) Phone.Password = line.substring(10).trim();
-          if(line.startsWith("Context")) Phone.Context=line.substring(9).trim();
-          if(line.startsWith("Skin")) skin=line.substring(7).trim();
-          if(line.startsWith("ListUser")) Phone.ListUser = line.substring(10).trim();
-          if(line.startsWith("ListPassword")) Phone.ListPassword = line.substring(14).trim();
+          else if(line.startsWith("WriteUser")) Phone.WriteUser = line.substring(11).trim();
+          else if(line.startsWith("WritePassword")) Phone.WriteUserPassword = line.substring(15).trim();
+          else if(line.startsWith("Context")) Phone.Context=line.substring(9).trim();
+          else if(line.startsWith("Skin")) skin=line.substring(7).trim();
+          else if(line.startsWith("ReadUser")) Phone.ReadUser = line.substring(10).trim();
+          else if(line.startsWith("ReadPassword")) Phone.ReadUserPassword = line.substring(14).trim();
+          else if(line.startsWith("UsersInfoFile")) UsersInfoFile = line.substring(15).trim();
+          else if(line.startsWith("PhotoFolder")) Phone.PhotoFolder = line.substring(13).trim();
+          else if(line.startsWith("DefaultPhoto")) Phone.DefaultPhoto = line.substring(14).trim();
        }
        br.close();
 	
@@ -135,7 +131,7 @@ private static void getConfig() throws IOException{
 //загрузка xml файла
   private static Document getXmlFile() throws Exception {
 	  try {
-		  File file=new File("C:\\temp\\Vitebsk.xml");
+		  File file=new File(UsersInfoFile);
           DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
           f.setValidating(false);
           DocumentBuilder builder = f.newDocumentBuilder();
@@ -171,9 +167,6 @@ private void showDocument(Document doc) {
 	SecondPageDisplay.set(FirstPageDisplay, container);
 	FirstPageDisplay.Layout(0);
 	
-
-	//RedirectPanel.addRedirectPanel();
-
 	Phone = new Phone();
     Phone.CreatePhone();
     validate();
@@ -196,6 +189,34 @@ private void showDocument(Document doc) {
 	}
 
  }
+  public static PrintWriter TelnetWriter()
+  {
+	  return telnetWriter;
+  }
+  public static BufferedReader TelnetReader()
+  { 
+	  return telnetReader;
+  }
+
+  //остановка главного потока на timeToSleep миллисекунд, чтобы поток Asterisk смог обработать команды
+  public static void SleepThread(int timeToSleep){
+	  
+      try{
+          Thread.sleep(timeToSleep);		
+      }catch(InterruptedException e){}
+	  
+  }
+  //вовращает поток asterisk
+  public static AsteriskThread getAsteriskThread(){
+	  return AsteriskThread;
+  }
+  //делает главный фрейм недоступным для нажатий на кнопки
+  public static void MakeInterfaceEnable(Boolean state)
+  {
+	  frame.setEnabled(state);
+	  CallFrame.MakeFramesNotEnable(state);
+  }
+
  public static void main(String[] args) {  
 	//загрузка настроек для интерфейса
 	  try {
@@ -203,13 +224,14 @@ private void showDocument(Document doc) {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		//установка скина для приложения	z
+		//установка скина для приложения
 	  java.awt.EventQueue.invokeLater(new Runnable() {
 		    public void run() {
 		            try {
 		            	SubstanceLookAndFeel laf = new SubstanceMarinerLookAndFeel();
 		                UIManager.setLookAndFeel(laf);
 		                String skinClassName = "org.pushingpixels.substance.api.skin."+skin+"Skin";
+		                SubstanceLookAndFeel.setSkin(skinClassName);
 		                JDialog.setDefaultLookAndFeelDecorated(true);
 		                
 		            } catch (UnsupportedLookAndFeelException e) {
@@ -221,149 +243,37 @@ private void showDocument(Document doc) {
 	  java.awt.EventQueue.invokeLater(new Runnable() {
 		    @SuppressWarnings("static-access")
 			public void run() {
-	               MainFrame frame = new MainFrame(); 
+	               frame = new MainFrame(); 
                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
                    frame.setVisible(true); 
 	             
                    try{
 	                  @SuppressWarnings("resource")
 					Socket telnet = new Socket(Phone.AsteriskIp, 5038);
-                      telnet.setKeepAlive(true);
-                      PrintWriter writer = new PrintWriter(telnet.getOutputStream());
-                      in = new BufferedReader(new InputStreamReader(telnet.getInputStream()));
+	                  telnet.setKeepAlive(true);
+                      telnetWriter = new PrintWriter(telnet.getOutputStream());
+                      telnetReader = new BufferedReader(new InputStreamReader(telnet.getInputStream()));
                   
-                      writer.print("Action: login\r\n");
-                      writer.print("UserName: "+Phone.ListUser+"\r\n");
-                      writer.print("Secret: "+Phone.ListPassword+"\r\n\r\n");           
-                      writer.flush();     
+                      telnetWriter.print("Action: login\r\n");
+                      telnetWriter.print("UserName: "+Phone.ReadUser+"\r\n");
+                      telnetWriter.print("Secret: "+Phone.ReadUserPassword+"\r\n\r\n");           
+                      telnetWriter.flush();     
+                      
                       } 
                   catch (SocketException e1) {
                       e1.printStackTrace();}
                   catch (IOException e1) {
                       e1.printStackTrace();}
 
-    //новый поток для обработки входящих вызовов для "истории звонков"
-                  TimerTask taskForListNumbers = new TimerTask() {
-                      public void run() {
-                    	  str = null;
+                   AsteriskThread = new AsteriskThread();
+                   AsteriskThread.start();
+		    	}
 
-                    	  error = false;
-						try {
-							str = in.readLine();
-							System.out.println(str);
-							if (str.startsWith("Event: Hangup")) {
-								do {                    	
-									inputChannel = null;
-		                    	    outputChannel = null;            	  
-									str = in.readLine();
-									System.out.println(str);
-									if (str.startsWith("Channel: SIP/"))
-										outputChannel = str.substring(13,str.indexOf("-"));
-									if (str.startsWith("Channel: Parked/SIP/"))
-										outputChannel = str.substring(20,str.indexOf("-"));
-									if (str.startsWith("Cause: ")) {
-										if (!str.substring(7).equals("16"))
-											error = true;
-										System.out.println(str.substring(7));
-									}
-									if (str.startsWith("Cause-txt: User alerting, no answer"))
-										error = true;
-								} while (!str.startsWith("Cause-txt:"));
-								System.out.println(error);
-								if (error != true) {
-									do {
-										str = in.readLine();
-										System.out.println(str);
-										if (str.startsWith("Channel: SIP/"))
-											inputChannel = str.substring(13,str.indexOf("-"));
-									} while (!str.startsWith("ConnectedLineName:"));
-									for (int i = 0; i < Phone.AllExtensions.size(); i++) {
-										// исходящий звонок
-										if (inputChannel.equals(Phone.AllExtensions.get(i))) {
-											Phone.NumForList(outputChannel, 0);
-										}
-										// входящий звонок
-										else if (outputChannel.equals(Phone.AllExtensions.get(i))&& !outputChannel.equals(Phone.Extension)) {
-											Phone.NumForList(inputChannel, 1);
-										}
-									}
-								}
-							}
-							//отлов входящих/исходящих звонков
-							if (str.startsWith("Event: Dial")) {
-								dialChannel=null;
-								dialInitChannel=null;
-								str = in.readLine();
-								str = in.readLine();
-								str = in.readLine();
-								//!!!!do while
-								dialInitChannel = str.substring(13,str.indexOf("-"));
-								str = in.readLine();
-								dialChannel = str.substring(17,str.indexOf("-"));
-								System.out.println(dialInitChannel);
-								System.out.println(dialChannel);
-								  for(int i = 0; i < Phone.AllExtensions.size(); i++)
-									  if (dialInitChannel.equals(Phone.usualExtensions.get(i)))
-									  {	    java.awt.EventQueue.invokeLater(new Runnable() {
-											public void run() { 
-												CallFrame CallFrame= new CallFrame();
-										CallFrame.addOutputCallPanel(dialInitChannel,dialChannel);
-										CallFrame.setVisible(true);
-
-											}});
-									  }
-								  for(int i = 0; i < Phone.usualExtensions.size(); i++)
-									  if (dialChannel.equals(Phone.usualExtensions.get(i)))
-									  {	    java.awt.EventQueue.invokeLater(new Runnable() {
-											public void run() { 
-												CallFrame CallFrame= new CallFrame();
-										CallFrame.addInputCallPanel(dialInitChannel,dialChannel);
-										CallFrame.setVisible(true);
-
-											}});
-									  }
-							}
-							if (str.startsWith("Event: Dial")) {
-								dialInitChannel=null;
-								dialChannel=null;			
-								do{
-									str=in.readLine();	
-									if(str.startsWith("Bridgestate:")) bridgeState = str.substring(13);
-									if(str.startsWith("Channel1:")) dialInitChannel = str.substring(10,str.indexOf("-"));
-									if(str.startsWith("Channel2:")) dialChannel = str.substring(10,str.indexOf("-"));
-								}while(str.startsWith("Uniqueid1:"));
-								
-								dialIterator = CallFrame.dialLines.entrySet().iterator();
-				                while (dialIterator.hasNext()){
-				                    Map.Entry entry = dialIterator.next();
-				                    entry.getValue();
-				                    entry.getKey();										
-								}
-							}
-						} catch (SocketException e1) {
-							e1.printStackTrace();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					}
-                 };
-      Timer timerList = new Timer();
-      timerList.schedule(taskForListNumbers, 0, 10);
-      /*Event: Bridge
-      Privilege: call,all
-      Bridgestate: Link
-      Bridgetype: core
-      Channel1: SIP/100-000003b0
-      Channel2: SIP/111-000003b1
-      Uniqueid1: 1366821454.964
-      Uniqueid2: 1366821454.965
-      CallerID1: 100
-      CallerID2: 111*/
-
-		    }
 	    });
+
   } 
-  //классы для считывания xml файла(определяются конфигурацией файла)
+ 
+  //классы для считывания xml файла(определяются конфигурацией файла)B 
   public static class newFirmNode {
 
 	        Node node;

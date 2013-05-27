@@ -14,7 +14,6 @@ public class Redirect extends JDialog {
 	private static final int HEIGHT = 1070;
 	private Font Font;
 	
-	//public static Redirect RedirectPanel = new Redirect();
 	//телефон, который отрисовывается при переводе
 	private RedirectPhone RedirPhone = new RedirectPhone();
     private static Container container;
@@ -29,6 +28,7 @@ public class Redirect extends JDialog {
 	    container = this.getContentPane();
 		setLayout(new BorderLayout());
 		addRedirectPanel();
+
 	}
 	
 	  //создание и прорисовка окна перевода
@@ -37,8 +37,8 @@ public class Redirect extends JDialog {
     	RedirPhone.CreateRedirectPhone();
     	  
     	this.add(RedirPhone,BorderLayout.EAST);
-	    this.setModal(true);
-	    this.setVisible(false); 
+	    setModal(true);
+	    setVisible(false); 
 
     }
     public static Container GetCont()
