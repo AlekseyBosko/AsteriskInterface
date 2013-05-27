@@ -35,8 +35,8 @@ public class SecondPageDisplay extends JPanel implements PageInterface{
 	@SuppressWarnings("static-access")
 	public SecondPageDisplay() { 
 
-		Font = new Font("Serif", Font.BOLD, 25);
-		arrFont = new Font("Serif", Font.BOLD, 20);
+		Font = new Font("TimesRoman", Font.BOLD, 25);
+		arrFont = new Font("TimesRoman", Font.BOLD, 20);
 	}
 	//создание кнопок из xml файла
 	public void addButton(List<infoNode> information){
@@ -72,7 +72,7 @@ public class SecondPageDisplay extends JPanel implements PageInterface{
             label2.setFont(Font);
             
             button.add(BorderLayout.NORTH,label1);
-            button.add(BorderLayout.SOUTH,label2);
+            button.add(BorderLayout.CENTER,label2);
 
 		    button.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent ev) { 

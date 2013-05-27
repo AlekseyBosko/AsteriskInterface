@@ -12,92 +12,87 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.SocketException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import org.pushingpixels.substance.api.SubstanceLookAndFeel;
 
 @SuppressWarnings("serial")
 public class Phone extends JPanel {
 	
-	protected static Font listNamesFont;
 	protected static Font NumButtonsFont;
 	protected static Font ButtonsFont;
 	protected static Font DisplayFont;
     //поле для ввода номера
 	protected static JTextField DisplayField;
-	//максимальное количество цифр в поле
+	//максимальное количество цифр в поле ввода
 	protected int MaxChars;
 	//номер телефона с громой связью
-	public static String Extension;
+	public static String MainExtension;
 	//номера телефонов без громкой связи
 	public static ArrayList<String> usualExtensions;
 	//все возможные номера принадлежащие телефону
 	public static ArrayList<String> AllExtensions;
 	//IP адрес asterisk
 	public static String AsteriskIp;
-	//имя пользователя для AMI
-	public static String User;
-	//пароль пользователя для AMI
-	public static String Password;
-	//имя пользователя для AMI для истории звонков
-	public static String ListUser;
-	//пароль пользователя для AMI для истории звонков
-	public static String ListPassword;
+	//имя пользователя AMI для записи
+	public static String WriteUser;
+	//пароль пользователя AMI для записи
+	public static String WriteUserPassword;
+	//имя пользователя AMI для чтения(иногда используется для записи)
+	public static String ReadUser;
+	//пароль пользователя AMI для чтения(иногда используется для записи)
+	public static String ReadUserPassword;
 	//контекст для телефона с громкой связью
 	public static String Context;
 	//телефон для повторного звонка
 	private static String Redial;
+	//путь к папке с фотографиями
+	public static String PhotoFolder;
+	//имя defaut фотографии
+	public static String DefaultPhoto;
 	
-	private JButton CallButton;
+	private static JButton CallButton;
 	private JButton RedirectButton;
-	//путь для красной стелки в "истории звонков"
+
+
+	//путь для картинки красной стелки в "истории звонков"
 	private static URL urlRed;
-	//путь для зелёной стелки в "истории звонков"
+	//путь для картинки зелёной стелки в "истории звонков"
 	private static URL urlGreen;
+	//путь для картинки неотвеченого звонка в "истории звонков"
+	private static URL urlMissCall;
 	//панель "истории звонков"
-	private static JPanel listPanel;
+	private static Box listBox;
+	private static JPanel butPanel;
 	//хэш массив (номера-имя)
 	public static Hashtable<String, List<String>> numbers = new Hashtable<String, List<String>>();
 	
 	public Phone() { 
-		listNamesFont = new Font("Serif", Font.BOLD, 20);
 		NumButtonsFont = new Font("Serif", Font.BOLD, 40);
-		ButtonsFont = new Font("Serif", Font.PLAIN, 26);
-		DisplayFont = new Font("Serif", Font.PLAIN, 80);
+		ButtonsFont = new Font("TimesRoman", Font.PLAIN, 26);
+		DisplayFont = new Font("TimesRoman", Font.PLAIN, 80);
 		MaxChars = 11;
 		setLayout(new BorderLayout());
-		listPanel= new JPanel();
-		listPanel.setPreferredSize(new Dimension(300,760));
-		listPanel.setMaximumSize(new Dimension(300,760));
-		listPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		listPanel.setVisible(false);
-		
+
 		urlRed = ClassLoader.getSystemResource("red.png");
 	    urlGreen = ClassLoader.getSystemResource("green.png");
+	    urlMissCall = ClassLoader.getSystemResource("miss.png");
 	}
 	//добавление кнопок(0,1,2,3,4,5,6,7,8,9,*,#)
 	public JPanel addNumberButtons(JTextField DispField){
@@ -168,8 +163,8 @@ public class Phone extends JPanel {
 		    });
 		//добавление кнопки Позвонить
 	    URL urlCall = ClassLoader.getSystemResource("phone-green-icon.png");
-		//CallButton = new JButton(new ImageIcon(urlCall));
-	    CallButton = new JButton("call");
+		CallButton = new JButton(new ImageIcon(urlCall));
+	    // CallButton = new JButton("call");
 		CallButton.setPreferredSize(new Dimension(180,90));
 		if(DisplayField.getText().isEmpty()) CallButton.setEnabled(false);
 		else CallButton.setEnabled(true);
@@ -180,9 +175,9 @@ public class Phone extends JPanel {
 	            } 
 		    });
 		//добавление кнопки Очистить дисплей
-		URL urlRemove = ClassLoader.getSystemResource("Banned-icon.png");
-		//JButton RemoveButton = new JButton(new ImageIcon(urlRemove));
-		JButton RemoveButton = new JButton("remove");
+	    URL urlRemove = ClassLoader.getSystemResource("Banned-icon.png");
+		JButton RemoveButton = new JButton(new ImageIcon(urlRemove));
+		//JButton RemoveButton = new JButton("remove");
 		RemoveButton.setPreferredSize(new Dimension(180,90));
 		RemoveButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent ev) { 
@@ -201,9 +196,11 @@ public class Phone extends JPanel {
         RedirectButton.add(BorderLayout.NORTH,label1);
         RedirectButton.add(BorderLayout.CENTER,label2);    
 		RedirectButton.addActionListener(new ActionListener() { 
-			public void actionPerformed(ActionEvent ev) { 
+			public void actionPerformed(ActionEvent ev) {
+				CallFrame.MakeFramesVisible(false);
 			    MainFrame.RedirectFirstPage.Layout(0);
 				MainFrame.RedirectPanel.setVisible(true);
+
 	            } 
 		    });
 		//добавление кнопки история звонков
@@ -219,7 +216,7 @@ public class Phone extends JPanel {
         ListButton.add(BorderLayout.CENTER,label2);    
         ListButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent ev) { 			
-				listPanel.setVisible(!listPanel.isVisible());		
+				listBox.setVisible(!listBox.isVisible());		
 			}
 		    });
         //прикрепление функциональных кнопок к одной панели
@@ -233,73 +230,53 @@ public class Phone extends JPanel {
 
 	    return panel;
 	}
-	//функция звонок
-	/*public static void Call(final String num){
-	   
-		java.awt.EventQueue.invokeLater(new Runnable() {
-			public void run() {  
-		CallFrame CallFrame= new CallFrame();
-		CallFrame.HoldIfNotActive();
-		CallFrame.addOutputCallPanel(Extension,num);
-     	CallFrame.setVisible(true);
-    	}});
-		
-		Redial = num;
-		try {
-			Socket telnet = new Socket(AsteriskIp, 5038);
-            telnet.setKeepAlive(true);
-            PrintWriter writer = new PrintWriter(telnet.getOutputStream());
-                 writer.print("Action: login\r\n");
-                 writer.print("UserName: "+User+"\r\n");
-                 writer.print("Secret: "+Password+"\r\n\r\n");
-                 writer.print("Action: Originate\r\n");
-                 writer.print("Channel: SIP/"+Extension+"\r\n" );
-                 writer.print("Exten: "+num+"\r\n");
-                 writer.print("Context: "+Context+"\r\n");
-                 writer.print("Priority: 1\r\n");
-                 writer.print("CallerId: phone<"+num+">\r\n");
-                 writer.print("Async: yes\r\n\r\n");
-                 writer.print("Action: LOGOFF\r\n\r\n");
-                 writer.flush();
-                 telnet.close();
-            }          
-    catch (SocketException e1) {
-       e1.printStackTrace();    
-   } catch (IOException e1) {
-       e1.printStackTrace();
-   }
-
-
-    }*/
-	public static void Call(final String num) {
-		PrintWriter writer = MainFrame.ReturnWriter();
-		java.awt.EventQueue.invokeLater(new Runnable() {
-			public void run() {  
-		CallFrame CallFrame= new CallFrame();
-		CallFrame.HoldIfNotActive();
-		CallFrame.addOutputCallPanel(Extension,num);
-     	CallFrame.setVisible(true);
-    	}});
-		
-		Redial = num;
-		writer.print("Action: Originate\r\n");
-		 writer.print("Channel: SIP/"+Extension+"\r\n" );
-		 writer.print("Exten: "+num+"\r\n");
-		 writer.print("Context: "+Context+"\r\n");
-		 writer.print("Priority: 1\r\n");
-		 writer.print("CallerId: phone<"+num+">\r\n");
-		 writer.print("Async: yes\r\n\r\n");
-		 writer.flush();
-
-    }
 	
+	public static JButton GetCallButton()
+	{
+		return CallButton;
+	}
+	//функция звонок
+	@SuppressWarnings("static-access")
+	public static void Call(final String num) {
+
+		CallFrame CallFrame = new CallFrame();
+
+		CallFrame.HoldIfNotActive();
+		Redial = num;
+
+		PrintWriter writer = MainFrame.TelnetWriter();
+
+		writer.print("Action: Originate\r\n");
+		writer.print("Channel: SIP/" + MainExtension + "\r\n");
+		writer.print("Exten: " + num + "\r\n");
+		writer.print("Context: " + Context + "\r\n");
+		writer.print("Priority: 1\r\n");
+		writer.print("CallerId: phone<" + num + ">\r\n");
+		writer.print("Async: yes\r\n\r\n");
+		writer.flush();
+		
+		CallFrame.removeFromList(CallFrame);
+		CallFrame.dispose();
+		//для последовательного вывод на экран CallFrames
+		MainFrame.xLocationForCallFrame-=450;
+ 		//остановка главного потока на 1300 миллисекунд, чтобы поток Asterisk смог обработать команды
+		   CallButton.setEnabled(false);
+		   try{
+
+		          Thread.sleep(600);		
+		      }catch(InterruptedException e){}
+         new CallButtonTrue().start();
+         CallFrame.MakeFramesNotEnable(false);
+ 		new CallFramesTrue().start();
+
+	}
 	
 	public JButton Sleep(){
 	JButton button = new JButton("Затемнить");
     button.setVisible(true);
     button.setLocation(500,500);
     button.setPreferredSize(new Dimension(290,130));
-	button.setFont(new Font("Serif", Font.PLAIN, 40));
+	button.setFont(new Font("TimesRoman", Font.PLAIN, 40));
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {        	
       		final JFrame f1 = new JFrame();
@@ -327,7 +304,6 @@ public class Phone extends JPanel {
 					}
       		});
       		f1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      		//f1.setSize(300, 300);
       		Toolkit kit = Toolkit.getDefaultToolkit();      
       	    f1.setLocation((kit.getScreenSize().width - 300)/2, (kit.getScreenSize().height - 300)/2);
       		f1.setUndecorated(true);
@@ -338,69 +314,88 @@ public class Phone extends JPanel {
     });
     return button; 
 	}
-	
-	//удаление callframe исходящих и входящих выховов и добавление новой записи в "список звонков"
-@SuppressWarnings("deprecation")
-public static void NumForList(final String outputChan,String inputChan,final int flagHangup)
-{ //flagHangup - указывает входящий или исходящий звонок(0-исходящий/1-входящий)
-	String initChannel=null;  //канал, который инициировал звонок
-	String channel=null;   //канал, который принимает звонок
-	Iterator<Entry<CallFrame, List<String>>> bridgeIterator = null;
-	//установка переменных канала в зависимости от типа звонка(входящий/исходящий)
-	if(flagHangup==0) {
-		initChannel=inputChan;
-		channel=outputChan;
-	}
-	else {
-		initChannel=outputChan;
-		channel=inputChan;
-	}
-	//поиск и удаление существующих callframe исходящих и входящих выховов
-	bridgeIterator = CallFrame.bridgeLines.entrySet().iterator();
-	while (bridgeIterator.hasNext()) {
-		Map.Entry entry = bridgeIterator.next();
-		List<String> bridgeList = (List<String>) entry.getValue();
-		if(bridgeList.get(0).equals(initChannel)&&bridgeList.get(1).equals(channel))
-		{
-			((CallFrame) entry.getKey()).setVisible(false);
-	        ((CallFrame) entry.getKey()).dispose();
-			CallFrame.bridgeLines.remove((CallFrame) entry.getKey());
+
+	public static void TypeOfCallForList(String hangupInitNumber,
+			String hangupNumber, Boolean missCall) {
+
+		for (int i = 0; i < AllExtensions.size(); i++) {
+			// исходящий звонок
+			if (hangupNumber.equals(AllExtensions.get(i)) && missCall) {
+				NumForList(hangupInitNumber, "MissCall");
+			} else if (hangupInitNumber.equals(AllExtensions.get(i))) {
+				NumForList(hangupNumber, "Output");
+			}
+			// входящий звонок
+			else if (hangupNumber.equals(AllExtensions.get(i))) {
+				NumForList(hangupInitNumber, "Input");
+
+			}
 		}
 	}
+	//удаление callframe исходящих и входящих выховов и добавление новой записи в "список звонков"
+	@SuppressWarnings("deprecation")
+	public synchronized static void NumForList(final String outerNum,
+			final String flagHangup) {
+		java.awt.EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				if (butPanel.countComponents() == 10)
+					butPanel.remove(9);
+				JButton button = new JButton();
+				button.setPreferredSize(new Dimension(300, 70));
+				button.setMaximumSize(new Dimension(300, 70));
+				button.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent ev) {
+						Call(outerNum);
+					}
+				});
+				button.setLayout(new BorderLayout());
+				JLabel label1 = null;
+				if (numbers.get(outerNum) != null) {
+					label1 = new JLabel(numbers.get(outerNum).get(0), JLabel.CENTER);
+					label1.setFont(new Font("TimesRoman", Font.BOLD, 18));
+				}
+				JLabel label2 = null;
 
-	java.awt.EventQueue.invokeLater(new Runnable() {
-	    public void run() {
-             if(listPanel.countComponents()==10) listPanel.remove(9);   
-	         JButton button = new JButton(); 
-	         button.setPreferredSize(new Dimension(300,70));
-	         button.setMaximumSize(new Dimension(300,70));
-	         button.addActionListener(new ActionListener() { 
-		     public void actionPerformed(ActionEvent ev) { 
-		     	Call(outputChan);
-              } 
-	         });
-           	 button.setLayout(new BorderLayout());
-           	JLabel label1 = null;
-             if(numbers.get(outputChan)!=null) {
-            	 label1 = new JLabel(numbers.get(outputChan).get(0),JLabel.CENTER);
-                 label1.setFont(listNamesFont);
-             }
-             JLabel label2;
-           //if(flagHangup==0) label2 = new JLabel(outputChan,new ImageIcon(urlRed),JLabel.CENTER);
-          // else label2 = new JLabel(outputChan,new ImageIcon(urlGreen),JLabel.CENTER);
-             if(flagHangup==0) label2 = new JLabel(outputChan + "исходящий",JLabel.CENTER);
-             else label2 = new JLabel(outputChan+ "входящий",JLabel.CENTER);
-             //label2.setFont(NumButtonsFont);
+				if (flagHangup.equals("Output"))
+					label2 = new JLabel(outerNum, new ImageIcon(urlRed),JLabel.CENTER);
+				else if (flagHangup.equals("Input"))
+					label2 = new JLabel(outerNum, new ImageIcon(urlGreen),JLabel.CENTER);
+				else if (flagHangup.equals("MissCall"))
+					label2 = new JLabel(outerNum, new ImageIcon(urlMissCall),JLabel.CENTER);
+				// if(flagHangup.equals("Output")) label2 = new JLabel(outerNum + "исходящий",JLabel.CENTER);
+				// else if(flagHangup.equals("Input")) label2 = new JLabel(outerNum+ "входящий",JLabel.CENTER);
+				// else if(flagHangup.equals("MissCall")) label2 = new JLabel(outerNum+ "missCall",JLabel.CENTER);
+				label2.setFont(new Font("Serif", Font.BOLD, 22));
 				if (label1 != null) {
 					button.add(BorderLayout.NORTH, label1);
 					button.add(BorderLayout.CENTER, label2);
-				}  
-				else button.add(BorderLayout.CENTER, label2);
-             listPanel.add(button,0);
-             listPanel.validate();
-             listPanel.repaint();
-	    }});
-}
+				} else
+					button.add(BorderLayout.CENTER, label2);
+				butPanel.add(button, 0);
+				butPanel.validate();
+				butPanel.repaint();
+			}
+		});
+	}
+//создание панели с кнопками истории звонков
+	public void HistoryList() {
+		listBox = Box.createVerticalBox();
+		listBox.setVisible(false);
+		JLabel labelForList = new JLabel("История звонков");
+		labelForList.setFont(new Font("TimesRoman", Font.PLAIN, 35));
+		butPanel = new JPanel();
+		butPanel.setPreferredSize(new Dimension(310, 760));
+		butPanel.setMaximumSize(new Dimension(310, 760));
+		butPanel.setMinimumSize(new Dimension(310, 760));
+		butPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		listBox.add(Box.createVerticalGlue());
+		listBox.add(Box.createVerticalStrut(10));
+		labelForList.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+		listBox.add(labelForList);
+		listBox.add(butPanel);
+		listBox.add(Box.createVerticalGlue());
+
+	}
 //создание телефона и отображение его на экране
 	public void CreatePhone(){    
 	 DisplayField = new JTextField();
@@ -425,22 +420,38 @@ public static void NumForList(final String outputChan,String inputChan,final int
 	 contentBox.add(CallBox);
 	 contentBox.add(Box.createVerticalGlue());
 	 
+	 HistoryList();
 	 JButton sleep = Sleep();
 	 JPanel slPanel = new JPanel();
 	 slPanel.setLayout(new BorderLayout());
 	 slPanel.add(sleep,BorderLayout.EAST);
-     Box listBox = Box.createVerticalBox(); 
-     listBox.setPreferredSize(new Dimension(140,620));
-     listBox.add(Box.createVerticalGlue());
-     //listBox.add(sleep);
+     Box boxForList = Box.createVerticalBox(); 
+     boxForList.setPreferredSize(new Dimension(140,620));
+     boxForList.add(Box.createVerticalGlue());
      contentBox.add(Box.createVerticalStrut(10));
-     listBox.add(listPanel);
-     listBox.add(Box.createVerticalGlue());
+     boxForList.add(listBox);
+     boxForList.add(Box.createVerticalGlue());
+     
      this.add(slPanel,BorderLayout.NORTH);
      this.add(contentBox,BorderLayout.WEST);
-     this.add(listBox,BorderLayout.CENTER);
+     this.add(boxForList,BorderLayout.CENTER);
 	 MainFrame.container.add(this,BorderLayout.CENTER);
 	}
 	
 
 }
+class CallButtonTrue extends Thread
+{ 
+   
+	@Override
+    public void run()
+    {
+		try {
+			sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		if(Phone.DisplayField.getText().isEmpty()) Phone.GetCallButton().setEnabled(false);
+		else Phone.GetCallButton().setEnabled(true);
+    }
+	}
