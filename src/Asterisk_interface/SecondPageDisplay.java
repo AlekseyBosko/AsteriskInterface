@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import Asterisk_interface.MainFrame.infoNode;
+import Asterisk_interface.MainFrame.positionNode;
 
 @SuppressWarnings("serial")
 public class SecondPageDisplay extends JPanel implements PageInterface{
@@ -39,10 +40,10 @@ public class SecondPageDisplay extends JPanel implements PageInterface{
 		arrFont = new Font("TimesRoman", Font.BOLD, 20);
 	}
 	//создание кнопок из xml файла
-	public void addButton(List<infoNode> information){
-		final List<infoNode> info = information;
+	public void addButton(List<positionNode> information){
+		final List<positionNode> position = information;
 		//количество блоков
-		p=info.size()/48;
+		p=position.size()/16;
 		SecondPagePanel = new JPanel[p+1];
 	    for(int i =0 ; i <= p;i++){
 	    	SecondPagePanel[i] = new JPanel();
@@ -50,15 +51,17 @@ public class SecondPageDisplay extends JPanel implements PageInterface{
 	    	SecondPagePanel[i].setLayout(new GridLayout(8, 2,10,10));
 	        }
 	    int k=0;
-		for (int i = 0,j=0; i < info.size(); i++,j++) {
+		for (int i = 0,j=0; i < position.size(); i++,j++) {
 			if(j==16){
 				//j - количество кнопок в блоке
 				j=0;
 			    k++;
 			        }
-			String job = info.get(i).getName(); 
-			String name = info.get(i+1).getName(); 
-            final String number = info.get(i+2).getName(); 
+	    	positionNode positionNode = position.get(i);
+	    	List<infoNode> info = positionNode.getInfo();
+			String job = positionNode.getName(); 
+			String name = info.get(0).getName(); 
+            final String number = info.get(1).getNumber(); 
     	    //создание кнопок
             JButton button = new JButton(); 
            
@@ -80,7 +83,6 @@ public class SecondPageDisplay extends JPanel implements PageInterface{
 				else RedirectPhone.Redirect(number);
 		         }
 		    });
-		    i+=3;
 		    SecondPagePanel[k].add(button);
 		}
 	}

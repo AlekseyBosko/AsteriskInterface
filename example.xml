@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<newFirm>
+  <office name = "Директора">
+    <position name = "Исполнительный директор">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="111"/>
+      <info photo ="afs.jpg"/>
+    </position>
+    <position name = "Финансовый директор">
+      <info name ="Фамилия Имя Отчество"/> 
+      <info number ="222"/>
+      <info photo ="Winter.jpg"/>
+    </position>
+  </office>
+  <office name = "Технический отдел">
+    <position name = "Главный инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="100"/>
+      <info photo ="Blue hills.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2177"/>
+      <info photo ="Winter.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2178"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2179"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2180"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2181"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2182"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2183"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2184"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2185"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2186"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2187"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2188"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2189"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2190"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2191"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2192"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2193"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2194"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2195"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+    <position name = "Инженер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="2196"/>
+      <info photo ="afsaf.jpg"/>
+    </position>
+  </office>
+  <office name = "Экономисты">
+    <position name = "Бухгалтер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="3111"/>
+      <info photo ="afs.jpg"/>
+    </position>
+    <position name = "Помощник Бухгалтер">
+      <info name ="Фамилия Имя Отчество"/>
+      <info number ="3112"/>
+      <info photo ="afs.jpg"/>
+    </position> 
+  </office>
+  <office name = "Отдел №1">
+  </office>
+  <office name = "Отдел №2">
+  </office>
+  <office name = "Отдел №3">
+  </office>
+  <office name = "Отдел №4">
+  </office>
+</newFirm>

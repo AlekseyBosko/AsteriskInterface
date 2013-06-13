@@ -175,16 +175,18 @@ private void showDocument(Document doc) {
     //загрузка данных для подписей "истории звонков"
 	for (int i = 0; i < offices.size(); i++) {
 		officeNode officeNode = offices.get(i);
-	    List<infoNode> info = officeNode.getInfo();	    
-	    for (int j=0; j < info.size();j++) {
+   	    List<positionNode> position = officeNode.getPosition();
+	    for (int j=0; j < position.size();j++) {
+	    	positionNode positionNode = position.get(j);
+	    	List<infoNode> info = positionNode.getInfo();
 	        List<String> newList = new ArrayList<String>();
-			String name = info.get(j+1).getName(); 
-            String number = info.get(j+2).getName(); 
-            String photo = info.get(j+3).getName(); 
+			String name = info.get(0).getName(); 
+            String number = info.get(1).getNumber(); 
+            String photo = info.get(2).getPhoto(); 
             newList.add(name);
             newList.add(photo);
             Phone.numbers.put(number, newList);
-            j+=3;
+            j+=1;
 	    }
 	}
 
@@ -307,6 +309,36 @@ private void showDocument(Document doc) {
 	         public officeNode(Node node) {
 	 	            this.node = node;
 	 	        }
+	         public List<positionNode> getPosition() {
+	 	            ArrayList<positionNode> position = new ArrayList<positionNode>();
+	 	            NodeList positionNodes = node.getChildNodes();
+	             for (int i = 0; i < positionNodes.getLength(); i++) {
+	 	                Node node = positionNodes.item(i);
+	 	 
+	                 if (node.getNodeType() == Node.ELEMENT_NODE) {
+	                	 positionNode positionNode = new positionNode(node);
+	                	 position.add(positionNode);
+	 	                }
+	             }
+	  
+	 	            return position;
+	 	        }
+	        public String getName() {
+
+           NamedNodeMap attributes = node.getAttributes();
+
+	            Node nameAttrib = attributes.getNamedItem("name");
+
+	            return nameAttrib.getNodeValue();
+	        }
+	    }
+	    public static class positionNode {
+	   	 
+	    	 Node node;
+	    	 
+	         public positionNode(Node node) {
+	 	            this.node = node;
+	 	        }
 	         public List<infoNode> getInfo() {
 	 	            ArrayList<infoNode> info = new ArrayList<infoNode>();
 	 	            NodeList infoNodes = node.getChildNodes();
@@ -323,7 +355,7 @@ private void showDocument(Document doc) {
 	 	        }
 	        public String getName() {
 
-           NamedNodeMap attributes = node.getAttributes();
+          NamedNodeMap attributes = node.getAttributes();
 
 	            Node nameAttrib = attributes.getNamedItem("name");
 
@@ -346,6 +378,22 @@ private void showDocument(Document doc) {
 
             return nameAttrib.getNodeValue();
 	        }
+        public String getNumber() {
+       	 
+            NamedNodeMap attributes = node.getAttributes();
+ 
+            Node nameAttrib = attributes.getNamedItem("number");
+
+        return nameAttrib.getNodeValue();
+        }
+        public String getPhoto() {
+       	 
+            NamedNodeMap attributes = node.getAttributes();
+ 
+            Node nameAttrib = attributes.getNamedItem("photo");
+
+        return nameAttrib.getNodeValue();
+        }
       }
 	        
 }

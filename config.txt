@@ -1,0 +1,68 @@
+;number of loudspeaker line	
+Speaker phone number = 888
+
+;Number of existing phones lines(can be more than one)
+;example:
+;Phone number = 111
+;Phone number = 112
+Phone number = 111
+
+;Ip adress of Asterisk
+Ip adress Asterisk = 172.16.11.131
+
+;name of Asterisk Manager Interface(AMI) user
+ReadUser = root
+
+;password of Asterisk Manager Interface(AMI) user  
+ReadPassword = 123
+
+;name of Asterisk Manager Interface(AMI) user for list of numbers(history)
+WriteUser = List
+
+;password of Asterisk Manager Interface(AMI) user for list of numbers(history)
+WritePassword = 123
+
+;Context of loudspeaker line
+Context = Boss_phones
+
+;Users Info filename
+UsersInfoFile = c://temp//example.xml
+
+;Name of folder for photo (example Photo)
+PhotoFolder = c://temp//Photo//
+
+;Name of a default Photo (example unknown.gif)
+DefaultPhoto = c://temp//Photo//amt.gif
+
+;Skins of interface
+;examples:
+
+;Autumn
+;BusinessBlackSteel
+;BusinessBlueSteel
+;Business
+;ChallengerDeep
+;CremeCoffee
+;Creme
+;DustCoffee
+;Dust
+;EmeraldDusk
+;Gemini
+;GraphiteAqua
+;GraphiteGlass
+;Graphite
+;Magellan
+;Mariner
+;MistAqua
+;MistSilver
+;Moderate
+;NebulaBrickWall
+;Nebula
+;OfficeBlue2007
+;OfficeBlack2007
+;OfficeSilver2007
+;Raven
+;Sahara
+;Twilight
+
+Skin = Mariner

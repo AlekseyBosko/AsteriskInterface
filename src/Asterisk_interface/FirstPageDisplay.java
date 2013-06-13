@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 
 import Asterisk_interface.MainFrame.infoNode;
 import Asterisk_interface.MainFrame.officeNode;
+import Asterisk_interface.MainFrame.positionNode;
 
 @SuppressWarnings("serial")
 public class FirstPageDisplay extends JPanel implements PageInterface{
@@ -59,14 +60,14 @@ public class FirstPageDisplay extends JPanel implements PageInterface{
 			    k++;
 			        }
 			officeNode officeNode = offices.get(i);
-		    final List<infoNode> info = officeNode.getInfo();
+		    final List<positionNode> position = officeNode.getPosition();
 		    //создание кнопок
 		    JButton button = new JButton(officeNode.getName()); 
 		    button.setFont(Font);
 		    button.setPreferredSize(new Dimension(900,150));
 		    button.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent ev) { 
-				second.addButton(info);
+				second.addButton(position);
 				second.addMoveButton();
 				second.Layout(0);
 	            } 
